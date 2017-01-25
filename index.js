@@ -89,21 +89,12 @@ S3Adapter.prototype._resolveFilename = function (file) {
 	// s3.path option. If that doesn't exist we'll assume the file is in the root
 	// of the bucket. (Whew!)
 	var path = file.path || this.options.path || '/';
-	return pathlib.posix.resolve(path, file.filename);
+	return pathlib.resolve(path, file.filename);
 };
 
-S3Adapter.prototype.uploadFile = function (file, item, callback) {
+S3Adapter.prototype.uploadFile = function (file, callback) {
 	var self = this;
-
-	if(process.env.NODE_ENV === 'development'){
-		console.log("attempting to upload file...", file, item)
-	}
-
-  if (typeof item === 'function') {
-    callback = item;
-    item = {};
-  }
-	this.options.generateFilename(file, item, function (err, filename) {
+	this.options.generateFilename(file, 0, function (err, filename) {
 		if (err) return callback(err);
 
 		// The expanded path of the file on the filesystem.
