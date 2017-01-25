@@ -11,6 +11,10 @@ var ensureCallback = require('keystone-storage-namefunctions/ensureCallback');
 var knox = require('knox');
 var nameFunctions = require('keystone-storage-namefunctions');
 var pathlib = require('path');
+var crypto = require("crypto-js");
+
+
+
 
 var DEFAULT_OPTIONS = {
 	key: process.env.S3_KEY,
@@ -29,6 +33,21 @@ var DEFAULT_OPTIONS = {
 // The schema can contain the additional fields { path, bucket, etag }.
 
 // See README.md for details and usage examples.
+
+// AWS signature key needed to upload to modern S3 Regions
+// key = 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY'
+// dateStamp = '20120215'
+// regionName = 'us-east-1'
+// serviceName = 'iam'
+function getSignatureKey(Crypto, key, dateStamp, regionName, serviceName) {
+    var kDate = Crypto.HmacSHA256(dateStamp, "AWS4" + key);
+    var kRegion = Crypto.HmacSHA256(regionName, kDate);
+    var kService = Crypto.HmacSHA256(serviceName, kRegion);
+    var kSigning = Crypto.HmacSHA256("aws4_request", kService);
+    return kSigning;
+}
+// Needs to create a header that looks like the following:
+// Authorization: AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=5d672d79c15b13162d9279b0855cfba6789a8edb4c82c400e06b5924a6f2b5d7
 
 function S3Adapter (options, schema) {
 	this.options = assign({}, DEFAULT_OPTIONS, options.s3);
