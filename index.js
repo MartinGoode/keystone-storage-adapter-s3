@@ -48,7 +48,7 @@ function S3Adapter (options, schema) {
 	}
 
 	// Ensure the generateFilename option takes a callback
-	this.options.generateFilename = ensureCallback(this.options.generateFilename);
+	this.options.generateFilename = ensureCallback(options.generateFilename ? options.generateFilename : this.options.generateFilename);
 }
 
 S3Adapter.compatibilityLevel = 1;
@@ -94,6 +94,11 @@ S3Adapter.prototype._resolveFilename = function (file) {
 
 S3Adapter.prototype.uploadFile = function (file, item, callback) {
 	var self = this;
+
+	if(process.env.NODE_ENV === 'development'){
+		console.log("attempting to upload file...", file, item)
+	}
+
   if (typeof item === 'function') {
     callback = item;
     item = {};
