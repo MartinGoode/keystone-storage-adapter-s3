@@ -16,7 +16,6 @@ var DEFAULT_OPTIONS = {
 	key: process.env.S3_KEY,
 	secret: process.env.S3_SECRET,
 	bucket: process.env.S3_BUCKET,
-	region: process.env.S3_REGION || 'us-east-1',
 	generateFilename: nameFunctions.randomFilename,
 };
 
@@ -93,9 +92,13 @@ S3Adapter.prototype._resolveFilename = function (file) {
 	return pathlib.posix.resolve(path, file.filename);
 };
 
-S3Adapter.prototype.uploadFile = function (file, callback) {
+S3Adapter.prototype.uploadFile = function (file, item, callback) {
 	var self = this;
-	this.options.generateFilename(file, 0, function (err, filename) {
+  if (typeof item === 'function') {
+    callback = item;
+    item = {};
+  }
+	this.options.generateFilename(file, item, function (err, filename) {
 		if (err) return callback(err);
 
 		// The expanded path of the file on the filesystem.
